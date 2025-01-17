@@ -1,7 +1,6 @@
 package ru.tde.films.Domain;
 
 import java.time.Duration;
-import java.util.Date;
 import java.util.*;
 import jakarta.persistence.*;
 
@@ -30,13 +29,13 @@ public class Film {
     @Column(nullable = false)
     private Duration timeDuration;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     private List<Director> directors;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     private List<Actor> actors;
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "film", cascade = CascadeType.MERGE)
     private List<Comment> comments;
 
     /// Возвращает уникальный идентификатор фильма.
@@ -81,9 +80,15 @@ public class Film {
     /// Возвращает список всех режиссеров фильма.
     public List<Director> getDirectors() { return directors; }
 
+    public void setDirectors(List<Director> directors) { this.directors = directors; }
+
     /// Возвращает список всех актеров фильма.
     public List<Actor> getActors() { return actors; }
 
+    public void setActors(List<Actor> actors) { this.actors = actors; }
+
     /// Возвращает список всех отзывов фильма.
     public List<Comment> getComments() { return comments; }
+
+    public void setComments(List<Comment> comments) { this.comments = comments; }
 }

@@ -1,169 +1,92 @@
 package ru.tde.films.Views;
 
-import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.html.*;
-import com.vaadin.flow.component.datepicker.DatePicker;
-import com.vaadin.flow.component.orderedlayout.*;
-import com.vaadin.flow.component.textfield.NumberField;
-import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.HasText;
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.ListItem;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.domain.Specification;
-import ru.tde.films.Domain.Film;
-import ru.tde.films.Repositories.Specifications.FilmSpecification;
-import ru.tde.films.Repositories.Specifications.SearchCriteria;
-import ru.tde.films.Services.FilmService;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
+import ru.tde.films.Domain.Film;
+import ru.tde.films.Repositories.Specifications.BaseSpecification;
+import ru.tde.films.Services.FilmService;
+import ru.tde.films.Views.Cards.ActorCard;
+import ru.tde.films.Views.Cards.DirectorCard;
+import ru.tde.films.Views.Cards.FilmCard;
+import ru.tde.films.Views.Filters.FilmFilterView;
+import ru.tde.films.Views.Modals.FilmModal;
+import ru.tde.films.Views.Util.BaseView;
+import ru.tde.films.Views.Util.PaginationView;
+
+import java.text.SimpleDateFormat;
 import java.util.List;
 
+
+@Scope("prototype")
+@Component
 @Route(value = "films", layout = MainView.class)
-public class FilmsView extends VerticalLayout {
+public class FilmsView extends BaseView<Film, FilmFilterView, FilmModal> {
 
-    private final VerticalLayout filmList = new VerticalLayout();
+    private final FilmService service;
 
-    private final TextField searchField = new TextField();
-    private final Button searchButton = new Button("Найти", this::searchHandler);
-
-    private final TextField genreFilter = new TextField("Жанр");
-    private final TextField countryFilter = new TextField("Страна");
-    private final DatePicker releaseDateFrom = new DatePicker("Дата выхода (с)");
-    private final DatePicker releaseDateTo = new DatePicker("Дата выхода (по)");
-    private final NumberField durationFrom = new NumberField("Продолжительность (мин. с)");
-    private final NumberField durationTo = new NumberField("Продолжительность (мин. по)");
-
-    private final Label pageLabel = new Label("0");
-
-    private int currentPage = 0; // Текущая страница
-    private static final int PAGE_SIZE = 10; // Количество фильмов на странице
+    private final SimpleDateFormat dateFormatter;
 
     @Autowired
-    private FilmService service;
-
-    public FilmsView() {
-        configureLayout();
-        searchHandler(null);
+    public FilmsView(FilmService service, FilmFilterView filterView, FilmModal modal, PaginationView paginationView, SimpleDateFormat formatter) {
+        super(filterView, modal, paginationView);
+        this.setTitle("Фильмы");
+        this.service = service;
+        this.dateFormatter = formatter;
+        setMaxPage(service.getPagesCount(getPageSize()));
+        forceUpdateList();
     }
 
-    private void searchHandler(ClickEvent<Button> event) {
-        var specs = makeSpecifications();
-        List<Film> films;
-        if (specs != null)
-            films = service.getFilteredPagination(specs, currentPage, PAGE_SIZE);
-        else
-            films = service.getPagination(currentPage, PAGE_SIZE);
-
-        changeFilmsList(films);
-        // update list
+    @Override
+    protected List<Film> getEntities(int page, int pageSize, BaseSpecification<Film> specification) {
+        return service.getFilteredPagination(specification, page, pageSize);
     }
 
-    private void changeFilmsList(List<Film> films) {
-        filmList.removeAll();
-        for (Film film : films)
-            filmList.add(new FilmCard(film));
-    }
+    @Override
+    protected VerticalLayout listCardFabric(Film film) {
+        var result = new VerticalLayout();
+        result.setSpacing(false);
+        result.setPadding(false);
+        result.setMargin(false);
+        var titleLink = new RouterLink(film.getTitle(), FilmCard.class, film.getId());
+        var title = new H2(titleLink);
+        result.add(title);
+        result.setMargin(false);
+        var releaseDate = new Paragraph("Дата выпуска: " + dateFormatter.format(film.getDateReleased()));
+        var genre = new Paragraph("Жанр: " + film.getGenre());
+        var country = new Paragraph("Страна: " + film.getCountry());
+        var duration = new Paragraph("Продолжительность: " + film.getTimeDuration().toHours() + " ч "
+                + film.getTimeDuration().toMinutesPart() + " мин");
+        result.add(releaseDate, genre, country, duration);
 
-    private List<FilmSpecification> makeSpecifications() {
-        return null;
-    }
+        var description = new Div();
+        description.setText(film.getDescription().substring(0, Math.min(film.getDescription().length() - 1, 200)) + "...");
+        description.setWhiteSpace(HasText.WhiteSpace.NORMAL);
+        result.add(description);
 
-    private void configureLayout() {
-        this.setAlignItems(Alignment.CENTER);
+        var directorsBlock = new Details("Режиссеры");
+        film.getDirectors()
+                .stream()
+                .map(i -> new RouterLink(i.getFio(), DirectorCard.class, i.getId()))
+                .forEach(directorsBlock::add);
+        result.add(directorsBlock);
 
-        durationFrom.setMin(0);
-        durationTo.setMin(0);
+        var actorsBlock = new Details("Актеры");
+        film.getActors()
+                .stream()
+                .map(actor -> new RouterLink(actor.getFio(), ActorCard.class, actor.getId()))
+                .forEach(i -> {actorsBlock.add(i); actorsBlock.add(new Paragraph());});
+        result.add(actorsBlock);
 
-        searchField.setPlaceholder("Название");
-        var searchLayout = new HorizontalLayout();
-        searchLayout.add(
-                searchField,
-                searchButton
-        );
-        searchLayout.setWidth("75%");
-        searchLayout.setAlignSelf(Alignment.END);
-        searchLayout.setFlexGrow(10, searchField);
-        add(searchLayout);
-
-        var filterOptions = new VerticalLayout();
-        filterOptions.setWidth("20%");
-        filterOptions.setAlignItems(Alignment.STRETCH);
-        filterOptions.add(
-                new Label("Фильтры"),
-                countryFilter,
-                genreFilter,
-                releaseDateFrom,
-                releaseDateTo,
-                durationFrom,
-                durationTo
-        );
-
-        var previousButton = new Button("Предыдущая", event -> {
-            if (currentPage > 0) {
-                currentPage--;
-                searchHandler(null);
-            }
-        });
-
-        var nextButton = new Button("Следующая", event -> {
-            currentPage++;
-            searchHandler(null);
-        });
-
-        var paginationLayout = new HorizontalLayout(
-                previousButton,
-                pageLabel,
-                nextButton);
-
-        var layout = new HorizontalLayout();
-        layout.setAlignSelf(Alignment.START);
-        layout.setWidth("100%");
-        layout.setAlignItems(Alignment.START);
-        layout.add(
-                filterOptions,
-                new VerticalLayout(filmList, paginationLayout)
-                );
-        add(layout);
-    }
-
-    private List<Film> fetchFilms(int offset, int limit) {
-        // Здесь вы можете вызвать свой сервис для получения фильмов
-        return List.of(
-                new Film(),
-                new Film(),
-                new Film(),
-                new Film(),
-                new Film(),
-                new Film(),
-                new Film(),
-                new Film(),
-                new Film(),
-                new Film(),
-                new Film()
-                // Здесь должны быть настоящие фильмы из вашего сервиса
-        );
-    }
-}
-
-class FilmCard extends VerticalLayout {
-    public FilmCard(Film film) {
-        super();
-        var titleLink = new RouterLink(
-                "Название: " + film.getTitle(),
-                FilmView.class,
-                film.getId()
-        );
-
-        add(
-                titleLink,
-                new H5("Дата выхода: " + film.getDateReleased()),
-                new H5("Страна: " + film.getCountry()),
-                new H5("Жанр: " + film.getGenre()),
-                new H5("Продолжительность: " + film.getTimeDuration() + " ч.")
-        );
-
-        titleLink.getElement().getStyle().set("cursor", "pointer");
+        return result;
     }
 }

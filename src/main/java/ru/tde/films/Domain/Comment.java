@@ -23,6 +23,7 @@ public class Comment {
     private Date dateWritten;
 
     @ManyToOne
+    @JoinColumn(name = "film_id")
     private Film film;
 
     /// Возвращает уникальный идентификатор отзыва.

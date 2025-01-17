@@ -1,36 +1,65 @@
 package ru.tde.films.Repositories.Specifications;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import org.springframework.data.jpa.domain.Specification;
 import ru.tde.films.Domain.Film;
 
-public class FilmSpecification implements Specification<Film> {
+import java.time.Duration;
+import java.util.Date;
 
-    private final SearchCriteria criteria;
-
-    public FilmSpecification(SearchCriteria criteria) {
-        this.criteria = criteria;
+/**
+ * Спецификация отбора фильмов.
+ */
+public class FilmSpecification extends BaseSpecification<Film> {
+    public FilmSpecification hasId(int id) {
+        return addSpecificationWrapper((root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("id"), id));
     }
 
-    @Override
-    public Predicate toPredicate(Root<Film> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
-        if (criteria.getOperation().equalsIgnoreCase(">")) {
-            return builder.greaterThanOrEqualTo(
-                    root.get(criteria.getKey()), criteria.getValue().toString());
-        } else if (criteria.getOperation().equalsIgnoreCase("<")) {
-            return builder.lessThanOrEqualTo(
-                    root.get(criteria.getKey()), criteria.getValue().toString());
-        } else if (criteria.getOperation().equalsIgnoreCase(":")) {
-            if (root.get(criteria.getKey()).getJavaType() == String.class) {
-                return builder.like(
-                        root.get(criteria.getKey()), "%" + criteria.getValue() + "%");
-            } else {
-                return builder.equal(root.get(criteria.getKey()), criteria.getValue());
-            }
-        }
-        return null;
+    public FilmSpecification hasTitle(String title) {
+        return addSpecificationWrapper((root, query, criteriaBuilder) ->
+                title == null || title.isBlank() ? criteriaBuilder.conjunction() :
+                        criteriaBuilder.equal(root.get("title"), title)
+        );
+    }
+
+    public FilmSpecification releasedAfter(Date date) {
+        return addSpecificationWrapper((root, query, criteriaBuilder) ->
+                date == null ? criteriaBuilder.conjunction() :
+                        criteriaBuilder.greaterThanOrEqualTo(root.get("dateReleased"), date)
+        );
+    }
+
+    public FilmSpecification releasedBefore(Date date) {
+        return addSpecificationWrapper((root, query, criteriaBuilder) ->
+                date == null ? criteriaBuilder.conjunction() :
+                        criteriaBuilder.lessThanOrEqualTo(root.get("dateReleased"), date)
+        );
+    }
+
+    public FilmSpecification hasGenre(String genre) {
+        return addSpecificationWrapper((root, query, criteriaBuilder) ->
+                genre == null || genre.isBlank() ? criteriaBuilder.conjunction() :
+                        criteriaBuilder.equal(root.get("genre"), genre)
+        );
+    }
+
+    public FilmSpecification hasCountry(String country) {
+        return addSpecificationWrapper((root, query, criteriaBuilder) ->
+                country == null || country.isBlank() ? criteriaBuilder.conjunction() :
+                        criteriaBuilder.equal(root.get("country"), country)
+        );
+    }
+
+    public FilmSpecification hasDurationLessThanOrEqualTo(Duration duration) {
+        return addSpecificationWrapper((root, query, criteriaBuilder) ->
+                duration == null ? criteriaBuilder.conjunction() :
+                        criteriaBuilder.lessThanOrEqualTo(root.get("timeDuration"), duration)
+        );
+    }
+
+    public FilmSpecification hasDurationGreaterThanOrEqualTo(Duration duration) {
+        return addSpecificationWrapper((root, query, criteriaBuilder) ->
+                duration == null ? criteriaBuilder.conjunction() :
+                        criteriaBuilder.greaterThanOrEqualTo(root.get("timeDuration"), duration)
+        );
     }
 }

@@ -1,7 +1,8 @@
 package ru.tde.films.Domain;
 
-import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -21,6 +22,9 @@ public abstract class Person {
 
     @Column(nullable = false)
     private Date dateOfBirth;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    private List<Film> films;
 
     /// Возвращает уникальный идентификатор сущности.
     public int getId() { return id; }
@@ -52,5 +56,10 @@ public abstract class Person {
     public String getFio() {
         return getSurname() + " " + getName().charAt(0) + " " + getPatronymic().charAt(0);
     }
+
+    /// Возвращает все фильмы, в которых снялся актер.
+    public List<Film> getFilms() { return films; }
+
+    public void setFilms(List<Film> films) { this.films = films; }
 }
 
