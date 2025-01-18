@@ -1,61 +1,28 @@
 package ru.tde.films.Domain;
 
-import java.util.Date;
+import java.util.*;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.*;
+import ru.tde.films.Views.Util.Annotation.Translation;
 
 @Entity
-@Table(name = "Comment")
+@Data
 public class Comment {
     @Id
+    @Setter(AccessLevel.NONE)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
-    @Column(nullable = false)
+    @Translation("Псевдоним")
     private String name;
 
-    @Column(nullable = false)
-    private int score;
+    @Translation("Оценка")
+    private Integer score;
 
-    @Column(nullable = false)
+    @Translation("Текст")
     private String text;
 
-    @Column(nullable = false)
+    @Translation("Дата")
     private Date dateWritten;
-
-    @ManyToOne
-    @JoinColumn(name = "film_id")
-    private Film film;
-
-    /// Возвращает уникальный идентификатор отзыва.
-    public int getId() { return id; }
-
-    /// Возвращает имя пользователя, оставившего отзыв.
-    public String getName() { return name; }
-
-    /// Устанавливает имя пользователя.
-    public void setName(String name) { this.name = name; }
-
-    /// Возвращает оценку.
-    public int getScore() { return score; }
-
-    /// Устанавливает оценку.
-    public void setScore(int score) { this.score = score; }
-
-    /// Возвращает текст отзыва.
-    public String getText() { return text; }
-
-    /// Устанавливает текст отзыва.
-    public void setText(String text) { this.text = text; }
-
-    /// Возвращает дату написания отзыва.
-    public Date getDateWritten() { return dateWritten; }
-
-    /// Устанавливает дату написания отзыва.
-    public void setDateWritten(Date dateWritten) { this.dateWritten = dateWritten; }
-
-    /// Возвращает фильм, к которому написан отзыв.
-    public Film getFilm() { return film; }
-
-    /// Устанавливает фильм, к которому написан отзыв.
-    public void setFilm(Film film) { this.film = film; }
 }

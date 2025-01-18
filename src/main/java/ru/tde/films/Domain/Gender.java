@@ -6,12 +6,8 @@ public enum Gender {
 
     private final String label;
 
-    Gender(String label) {
-        this.label = label;
-    }
+    Gender(String label) { this.label = label; }
 
     @Override
-    public String toString() {
-        return label;
-    }
+    public String toString() { return label; }
 }

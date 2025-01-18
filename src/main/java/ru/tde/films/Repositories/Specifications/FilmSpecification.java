@@ -2,7 +2,6 @@ package ru.tde.films.Repositories.Specifications;
 
 import ru.tde.films.Domain.Film;
 
-import java.time.Duration;
 import java.util.Date;
 
 /**
@@ -49,14 +48,14 @@ public class FilmSpecification extends BaseSpecification<Film> {
         );
     }
 
-    public FilmSpecification hasDurationLessThanOrEqualTo(Duration duration) {
+    public FilmSpecification hasDurationLessThanOrEqualTo(Integer duration) {
         return addSpecificationWrapper((root, query, criteriaBuilder) ->
                 duration == null ? criteriaBuilder.conjunction() :
                         criteriaBuilder.lessThanOrEqualTo(root.get("timeDuration"), duration)
         );
     }
 
-    public FilmSpecification hasDurationGreaterThanOrEqualTo(Duration duration) {
+    public FilmSpecification hasDurationGreaterThanOrEqualTo(Integer duration) {
         return addSpecificationWrapper((root, query, criteriaBuilder) ->
                 duration == null ? criteriaBuilder.conjunction() :
                         criteriaBuilder.greaterThanOrEqualTo(root.get("timeDuration"), duration)

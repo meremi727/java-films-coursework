@@ -1,24 +1,45 @@
 package ru.tde.films.Domain;
 
+import java.util.*;
 import jakarta.persistence.*;
+import lombok.*;
+import ru.tde.films.Views.Util.Annotation.Translation;
+
 
 @Entity
-public class Actor extends Person {
-    @Column(nullable = false)
+@Data
+public class Actor  {
+
+    public Actor() {}
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @Translation("Пол")
+    @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @Column(nullable = false)
+    @Translation("Страна")
     private String country;
 
-    /// Возвращает пол.
-    public Gender getGender() { return gender; }
+    @Translation("Фамилия")
+    private String surname;
 
-    /// Устанавливает новое значениеи пола.
-    public void setGender(Gender gender) { this.gender = gender; }
+    @Translation("Имя")
+    private String name;
 
-    /// Возвращает страну.
-    public String getCountry() { return country; }
+    @Translation("Отчество")
+    private String patronymic;
 
-    /// Устанавливает новое значение страны.
-    public void setCountry(String country) { this.country = country; }
+    @Translation("Дата рождения")
+    private Date dateOfBirth;
+
+    @Translation("Фильмы")
+    @ManyToMany(mappedBy = "actors", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private Set<Film> films = new HashSet<>();
+
+    public String getFio() {
+        return getSurname() + ". " + getName().charAt(0) + ". " + getPatronymic().charAt(0);
+    }
 }

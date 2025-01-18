@@ -15,17 +15,18 @@ public class MainView extends AppLayout implements RouterLayout {
     }
 
     private void createMenu() {
-        var b1 = makeNavButton("Главная", HomeView.class);
-        var b2 = makeNavButton("Фильмы", FilmsView.class);
-        var b3 = makeNavButton("Актеры", ActorsView.class);
-        var b4 = makeNavButton("Режиссеры", DirectorsView.class);
+//        var b1 = makeNavButton("Главная", HomeView.class);
+        var b2 = makeNavButton("Фильмы", FilmView.class);
+        var b3 = makeNavButton("Актеры", ActorView.class);
+        var b4 = makeNavButton("Режиссеры", DirectorView.class);
 
-        var menuLayout = new HorizontalLayout(b1, b2, b3, b4);
+//        var menuLayout = new HorizontalLayout(b1, b2, b3, b4);
+        var menuLayout = new HorizontalLayout(b2, b3, b4);
         menuLayout.setSpacing(true);
 
         menuLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
-        menuLayout.setFlexGrow(1, b1);
+//        menuLayout.setFlexGrow(1, b1);
         menuLayout.setFlexGrow(1, b2);
         menuLayout.setFlexGrow(1, b3);
         menuLayout.setFlexGrow(1, b4);

@@ -22,6 +22,12 @@ public class BaseSpecification<T> {
         return (T2) this;
     }
 
+    public BaseSpecification<T> add(BaseSpecification<T> spec) {
+        specification = specification.and(spec.specification);
+        sort = sort.and(spec.sort);
+        return this;
+    }
+
     public Specification<T> buildSpecification() { return specification; }
 
     public Sort buildSort() { return sort; }
