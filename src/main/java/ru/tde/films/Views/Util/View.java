@@ -12,8 +12,8 @@ import java.util.*;
 
 @Scope("prototype")
 @Component
-public abstract class View<T> extends HorizontalLayout {
-    public View(SortView<T> sortView, FilterView<T> filterView, ModalView<T> modalView) {
+public abstract class View<T, TDto> extends HorizontalLayout {
+    public View(SortView<TDto> sortView, FilterView<T, TDto> filterView, ModalView<TDto> modalView) {
         this.sortView = sortView;
         this.filterView = filterView;
         this.modalView = modalView;
@@ -22,12 +22,16 @@ public abstract class View<T> extends HorizontalLayout {
         initLayout();
     }
 
-    protected void openEditModal(T entity) { modalView.openEdit(entity); }
+    protected void openEditModal(TDto entity) { modalView.openEdit(entity); }
 
-    protected abstract void deleteEntity(T entity);
-    protected abstract void saveEntity(T entity);
-    protected abstract CardView<T> cardFabric(T entity);
-    protected abstract List<T> updateData(BaseSpecification<T> specification);
+    protected abstract void deleteEntity(TDto entity);
+    protected abstract void saveEntity(TDto entity);
+    protected abstract CardView<TDto> cardFabric(TDto entity);
+    protected abstract List<TDto> updateData(BaseSpecification<T, TDto> specification);
+
+    protected void initForceUpdate() {
+        applyFiltersAndSort();
+    }
 
     private void initLayout() {
         var leftBlock = new VerticalLayout();
@@ -66,7 +70,7 @@ public abstract class View<T> extends HorizontalLayout {
     }
 
     private VerticalLayout cardsBlock;
-    private final SortView<T> sortView;
-    private final FilterView<T> filterView;
-    private final ModalView<T> modalView;
+    private final SortView<TDto> sortView;
+    private final FilterView<T, TDto> filterView;
+    private final ModalView<TDto> modalView;
 }

@@ -1,35 +1,32 @@
 package ru.tde.films.Views.Modals;
 
 import com.vaadin.flow.component.AbstractField;
-import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.combobox.*;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.textfield.IntegerField;
-import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.textfield.*;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.validator.DateRangeValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import ru.tde.films.Domain.Actor;
-import ru.tde.films.Domain.Film;
-import ru.tde.films.Domain.Gender;
-import ru.tde.films.Services.FilmService;
+import ru.tde.films.Domain.*;
+import ru.tde.films.Repositories.Dto.*;
 import ru.tde.films.Views.Util.Annotation.AnnotationProcessor;
 import ru.tde.films.Views.Util.ModalView;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.*;
+import java.util.function.Function;
 
 @Scope("prototype")
 @Component
-public class ActorModal extends ModalView<Actor> {
+public class ActorModal extends ModalView<ActorDto> {
     @Autowired
-    public ActorModal(FilmService filmService) {
+    public ActorModal(Function<Date, LocalDate> f1, Function<LocalDate, Date> f2) {
         super("Актер");
-        this.filmService = filmService;
+        this.toDate = f1;
+        this.toReverseDate = f2;
         init();
     }
 
@@ -41,21 +38,17 @@ public class ActorModal extends ModalView<Actor> {
         gender.setItems(Gender.values());
         gender.setItemLabelGenerator(Gender::toString);
 
-        films.setItems(filmService.getAll());
-        films.setItemLabelGenerator(Film::getTitle);
-
-        binder.forField(id).bind(Actor::getId, Actor::setId);
-        binder.forField(gender).asRequired("Обязательное поле").bind(Actor::getGender, Actor::setGender);
-        binder.forField(country).asRequired("Обязательное поле").bind(Actor::getCountry, Actor::setCountry);
-        binder.forField(surname).asRequired("Обязательное поле").bind(Actor::getSurname, Actor::setSurname);
-        binder.forField(name).asRequired("Обязательное поле").bind(Actor::getName, Actor::setName);
-        binder.forField(patronymic).asRequired("Обязательное поле").bind(Actor::getPatronymic, Actor::setPatronymic);
+        binder.forField(id).bind(ActorDto::getId, ActorDto::setId);
+        binder.forField(gender).asRequired("Обязательное поле").bind(ActorDto::getGender, ActorDto::setGender);
+        binder.forField(country).asRequired("Обязательное поле").bind(ActorDto::getCountry, ActorDto::setCountry);
+        binder.forField(surname).asRequired("Обязательное поле").bind(ActorDto::getSurname, ActorDto::setSurname);
+        binder.forField(name).asRequired("Обязательное поле").bind(ActorDto::getName, ActorDto::setName);
+        binder.forField(patronymic).asRequired("Обязательное поле").bind(ActorDto::getPatronymic, ActorDto::setPatronymic);
         binder.forField(dateOfBirth)
                 .asRequired("Обязательное поле")
                 .withValidator(new DateRangeValidator("Неверная дата", LocalDate.MIN, LocalDate.now()))
-                .withConverter(ActorModal::fromLocalDate, ActorModal::fromDate, "Ошибка преобразования даты")
-                .bind(Actor::getDateOfBirth, Actor::setDateOfBirth);
-        binder.forField(films).bind(Actor::getFilms, Actor::setFilms);
+                .withConverter(toReverseDate::apply, toDate::apply, "Ошибка преобразования даты")
+                .bind(ActorDto::getDateOfBirth, ActorDto::setDateOfBirth);
 
         addToBinder(gender);
         addToBinder(country);
@@ -63,14 +56,13 @@ public class ActorModal extends ModalView<Actor> {
         addToBinder(name);
         addToBinder(patronymic);
         addToBinder(dateOfBirth);
-        addToBinder(films);
 
-        form.add(gender, country, surname, name, patronymic, dateOfBirth, films);
+        form.add(gender, country, surname, name, patronymic, dateOfBirth);
         super.init(form);
     }
 
     @Override
-    protected void prepareForEditing(Actor entity) {
+    protected void prepareForEditing(ActorDto entity) {
         tmpEntity = entity;
         binder.readBean(entity);
     }
@@ -84,38 +76,31 @@ public class ActorModal extends ModalView<Actor> {
     @Override
     protected void applyButtonClick() {
         if (binder.isValid()) {
-            var actor = new Actor();
+            var actor = ActorDto.builder().build();
             binder.writeBeanIfValid(actor);
             raiseApplyEvent(actor);
         }
     }
 
     private static String getLabel(String fieldName) {
-        return AnnotationProcessor.getTranslation(Actor.class, fieldName);
-    }
-
-    private static Date fromLocalDate(LocalDate date) {
-        return Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-    }
-
-    private static LocalDate fromDate(Date date) {
-        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        return AnnotationProcessor.getTranslation(ActorDto.class, fieldName);
     }
 
     private void addToBinder(AbstractField<?, ?> field) {
         field.addValueChangeListener(e -> binder.validate());
     }
 
-    private final FilmService filmService;
-    private Actor tmpEntity;
-    private final Binder<Actor> binder = new Binder<>();
+
+    private final Function<Date, LocalDate> toDate;
+    private final Function<LocalDate, Date> toReverseDate;
+    private ActorDto tmpEntity;
+    private final Binder<ActorDto> binder = new Binder<>();
     private final ComboBox<Gender> gender = new ComboBox<>(getLabel("gender"));
     private final TextField country = new TextField(getLabel("country"));
     private final TextField surname = new TextField(getLabel("surname"));
     private final TextField name = new TextField(getLabel("name"));
     private final TextField patronymic = new TextField(getLabel("patronymic"));
     private final DatePicker dateOfBirth = new DatePicker(getLabel("dateOfBirth"));
-    private final MultiSelectComboBox<Film> films = new MultiSelectComboBox<>(getLabel("films"));
 
     private final IntegerField id = new IntegerField();
 }

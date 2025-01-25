@@ -6,9 +6,9 @@ import ru.tde.films.Views.Util.Filters.Filter;
 
 import java.util.*;
 
-public class FilterView<T> extends VerticalLayout {
+public class FilterView<T, TDto> extends VerticalLayout {
 
-    public FilterView(List<Filter<T>> filters) {
+    public FilterView(List<Filter<T, TDto>> filters) {
         this.filters = filters;
         setSizeUndefined();
         setPadding(false);
@@ -20,7 +20,7 @@ public class FilterView<T> extends VerticalLayout {
 
     public boolean isValid() { return filters.stream().allMatch(Filter::isValid); }
 
-    public BaseSpecification<T> getSpecification() {
+    public BaseSpecification<T, TDto> getSpecification() {
         assert isValid();
 
         return filters.stream()
@@ -29,5 +29,5 @@ public class FilterView<T> extends VerticalLayout {
                 .orElseGet(BaseSpecification::new);
     }
 
-    private final List<Filter<T>> filters;
+    private final List<Filter<T, TDto>> filters;
 }

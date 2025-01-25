@@ -5,6 +5,7 @@ import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.javatuples.Pair;
+import ru.tde.films.Repositories.Dto.ActorDto;
 import ru.tde.films.Repositories.Specifications.BaseSpecification;
 import ru.tde.films.Views.Util.Annotation.AnnotationProcessor;
 
@@ -13,8 +14,8 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.function.Function;
 
-public class DateFilter<T> extends VerticalLayout implements Filter<T> {
-    public DateFilter(Class<T> _class, String fieldName, Function<Pair<Date, Date>, BaseSpecification<T>> fabric) {
+public class DateFilter<T, TDto> extends VerticalLayout implements Filter<T, TDto> {
+    public DateFilter(Class<TDto> _class, String fieldName, Function<Pair<Date, Date>, BaseSpecification<T, TDto>> fabric) {
         var labelBase = AnnotationProcessor.getTranslation(_class, fieldName) + " ";
         from = new DatePicker(labelBase + "с");
         to = new DatePicker(labelBase + "по");
@@ -49,7 +50,7 @@ public class DateFilter<T> extends VerticalLayout implements Filter<T> {
     public boolean isFilled() { return !from.isEmpty() || !to.isEmpty(); }
 
     @Override
-    public BaseSpecification<T> getSpecificaion() {
+    public BaseSpecification<T, TDto> getSpecificaion() {
         assert isValid();
         return fabric.apply(new Pair<>(convert(from.getValue()), convert(to.getValue())));
     }
@@ -62,5 +63,5 @@ public class DateFilter<T> extends VerticalLayout implements Filter<T> {
 
     private final DatePicker from;
     private final DatePicker to;
-    private final Function<Pair<Date, Date>, BaseSpecification<T>> fabric;
+    private final Function<Pair<Date, Date>, BaseSpecification<T, TDto>> fabric;
 }

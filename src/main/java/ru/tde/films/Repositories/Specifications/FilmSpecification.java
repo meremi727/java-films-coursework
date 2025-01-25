@@ -1,13 +1,13 @@
 package ru.tde.films.Repositories.Specifications;
 
-import ru.tde.films.Domain.Film;
-
+import ru.tde.films.Domain.*;
+import ru.tde.films.Repositories.Dto.FilmDto;
 import java.util.Date;
 
 /**
  * Спецификация отбора фильмов.
  */
-public class FilmSpecification extends BaseSpecification<Film> {
+public class FilmSpecification extends BaseSpecification<Film, FilmDto> {
     public FilmSpecification hasId(int id) {
         return addSpecificationWrapper((root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get("id"), id));

@@ -1,10 +1,11 @@
 package ru.tde.films.Repositories.Specifications;
 
 import ru.tde.films.Domain.Comment;
+import ru.tde.films.Repositories.Dto.CommentDto;
 
 import java.util.Date;
 
-public class CommentSpecification extends BaseSpecification<Comment> {
+public class CommentSpecification extends BaseSpecification<Comment, CommentDto> {
     public CommentSpecification hasId(int id) {
         return addSpecificationWrapper((root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get("id"), id));

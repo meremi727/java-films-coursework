@@ -2,6 +2,7 @@ package ru.tde.films.Views.Util.Filters;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.NumberField;
 import org.javatuples.Pair;
@@ -10,8 +11,8 @@ import ru.tde.films.Views.Util.Annotation.AnnotationProcessor;
 
 import java.util.function.Function;
 
-public class IntegerFilter<T> extends HorizontalLayout implements Filter<T> {
-    public IntegerFilter(Class<T> _class, String fieldName, Function<Pair<Integer, Integer>, BaseSpecification<T>> fabric) {
+public class IntegerFilter<T, TDto> extends VerticalLayout implements Filter<T, TDto> {
+    public IntegerFilter(Class<TDto> _class, String fieldName, Function<Pair<Integer, Integer>, BaseSpecification<T, TDto>> fabric) {
         var labelBase = AnnotationProcessor.getTranslation(_class, fieldName) + " ";
         from = new IntegerField(labelBase + "с");
         to = new IntegerField(labelBase + "по");
@@ -20,7 +21,6 @@ public class IntegerFilter<T> extends HorizontalLayout implements Filter<T> {
 
         this.fabric = fabric;
         setPadding(false);
-        setSpacing(false);
         setMargin(false);
         add(from, to);
     }
@@ -48,12 +48,12 @@ public class IntegerFilter<T> extends HorizontalLayout implements Filter<T> {
     public boolean isFilled() { return !from.isEmpty() || !to.isEmpty(); }
 
     @Override
-    public BaseSpecification<T> getSpecificaion() {
+    public BaseSpecification<T, TDto> getSpecificaion() {
         assert isValid();
         return fabric.apply(new Pair<>(from.getValue(), to.getValue()));
     }
 
     private final IntegerField from;
     private final IntegerField to;
-    private final Function<Pair<Integer, Integer>, BaseSpecification<T>> fabric;
+    private final Function<Pair<Integer, Integer>, BaseSpecification<T, TDto>> fabric;
 }

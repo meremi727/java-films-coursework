@@ -1,11 +1,10 @@
 package ru.tde.films;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.modelmapper.ModelMapper;
+import org.springframework.context.annotation.*;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.Date;
 import java.util.function.Function;
 
@@ -25,5 +24,10 @@ public class AppConfiguration {
     @Bean
     public Function<LocalDate, Date> getReverseDateConverter() {
         return (LocalDate date) -> Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    }
+
+    @Bean
+    public ModelMapper getModelMapper() {
+        return MapperConfiguration.getMapper();
     }
 }

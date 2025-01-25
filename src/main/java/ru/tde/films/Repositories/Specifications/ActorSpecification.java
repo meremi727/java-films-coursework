@@ -1,10 +1,11 @@
 package ru.tde.films.Repositories.Specifications;
 
 import ru.tde.films.Domain.*;
+import ru.tde.films.Repositories.Dto.ActorDto;
 
 import java.util.Date;
 
-public class ActorSpecification extends BaseSpecification<Actor> {
+public class ActorSpecification extends BaseSpecification<Actor, ActorDto> {
     public ActorSpecification hasId(int id) {
         return addSpecificationWrapper((root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get("id"), id));

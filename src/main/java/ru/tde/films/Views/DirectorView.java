@@ -9,8 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import ru.tde.films.Domain.Director;
+import ru.tde.films.Repositories.Dto.DirectorDto;
 import ru.tde.films.Repositories.Specifications.BaseSpecification;
-import ru.tde.films.Services.DirectorService;
+import ru.tde.films.Services.BigService;
+import ru.tde.films.Views.Filters.DirectorFilter;
+import ru.tde.films.Views.Modals.DirectorModal;
+import ru.tde.films.Views.Sorts.DirectorSort;
 import ru.tde.films.Views.Util.*;
 
 import java.text.SimpleDateFormat;
@@ -19,36 +23,37 @@ import java.util.List;
 @Scope("prototype")
 @Component
 @Route(value = "directors", layout = MainView.class)
-public class DirectorView extends View<Director> {
+public class DirectorView extends View<Director, DirectorDto> {
     @Autowired
-    public DirectorView(SortView<Director> sortView, FilterView<Director> filterView, ModalView<Director> modalView, DirectorService service, SimpleDateFormat dateFormatter) {
+    public DirectorView(DirectorSort sortView, DirectorFilter filterView, DirectorModal modalView, BigService service, SimpleDateFormat dateFormatter) {
         super(sortView, filterView, modalView);
         this.service = service;
         this.dateFormatter = dateFormatter;
+        initForceUpdate();
     }
 
     @Override
-    protected void deleteEntity(Director entity) { service.deleteDirector(entity); }
+    protected void deleteEntity(DirectorDto entity) { service.deleteDirector(entity); }
 
     @Override
-    protected void saveEntity(Director entity) { service.saveDirector(entity); }
+    protected void saveEntity(DirectorDto entity) { service.saveDirector(entity); }
 
     @Override
-    protected CardView<Director> cardFabric(Director entity) {
+    protected CardView<DirectorDto> cardFabric(DirectorDto entity) {
         var card = new DirectorCard();
         card.init(entity);
         return card;
     }
 
     @Override
-    protected List<Director> updateData(BaseSpecification<Director> specification) { return service.getFiltered(specification); }
+    protected List<DirectorDto> updateData(BaseSpecification<Director, DirectorDto> specification) { return service.getFilteredDirectors(specification); }
 
     private final SimpleDateFormat dateFormatter;
-    private final DirectorService service;
+    private final BigService service;
 
-    private class DirectorCard extends VerticalLayout implements CardView<Director> {
+    private class DirectorCard extends VerticalLayout implements CardView<DirectorDto> {
         @Override
-        public void init(Director director) {
+        public void init(DirectorDto director) {
             add(new H3(director.getFio()));
 
             addLabels(
@@ -62,13 +67,7 @@ public class DirectorView extends View<Director> {
             );
 
             var editButton = new Button("✏\uFE0F", event -> openEditModal(director));
-            var films = new Details("Фильмы");
-            director.getFilms()
-                    .stream()
-                    .map(e -> new Paragraph(e.getTitle()))
-                    .forEach(films::add);
-
-            add(films, editButton);
+            add(editButton);
             setPadding(true);
             setSpacing(false);
         }

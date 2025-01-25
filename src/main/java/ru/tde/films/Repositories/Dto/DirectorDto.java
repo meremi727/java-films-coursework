@@ -1,29 +1,39 @@
-package ru.tde.films.Domain;
+package ru.tde.films.Repositories.Dto;
 
 import java.util.*;
-import jakarta.persistence.*;
 import lombok.*;
+import ru.tde.films.Domain.Gender;
+import ru.tde.films.Views.Util.Annotation.Translation;
 
 
-@Entity
 @Data
 @Builder
 @AllArgsConstructor
-public class Director  {
+public class DirectorDto  {
 
-    private Director() {}
+    private DirectorDto() {}
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Enumerated(EnumType.STRING)
+    @Translation("Пол")
     private Gender gender;
+
+    @Translation("Стана")
     private String country;
+
+    @Translation("Фамилия")
     private String surname;
+
+    @Translation("Имя")
     private String name;
+
+    @Translation("Отчество")
     private String patronymic;
+
+    @Translation("Дата рождения")
     private Date dateOfBirth;
+
+    @Translation("Титул")
     private String dignity;
 
     public String getFio() {

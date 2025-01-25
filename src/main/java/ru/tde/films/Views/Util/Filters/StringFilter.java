@@ -8,8 +8,8 @@ import ru.tde.films.Views.Util.Annotation.AnnotationProcessor;
 
 import java.util.function.Function;
 
-public class StringFilter<T> extends VerticalLayout implements Filter<T> {
-    public StringFilter(Class<T> _class, String fieldName, Function<String, BaseSpecification<T>> fabric) {
+public class StringFilter<T, TDto> extends VerticalLayout implements Filter<T, TDto> {
+    public StringFilter(Class<TDto> _class, String fieldName, Function<String, BaseSpecification<T, TDto>> fabric) {
         field = new TextField(AnnotationProcessor.getTranslation(_class, fieldName));
         this.fabric = fabric;
         setPadding(false);
@@ -39,10 +39,10 @@ public class StringFilter<T> extends VerticalLayout implements Filter<T> {
     }
 
     @Override
-    public BaseSpecification<T> getSpecificaion() {
+    public BaseSpecification<T, TDto> getSpecificaion() {
         return fabric.apply(field.getValue());
     }
 
     private final TextField field;
-    private final Function<String, BaseSpecification<T>> fabric;
+    private final Function<String, BaseSpecification<T, TDto>> fabric;
 }

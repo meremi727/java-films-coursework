@@ -7,7 +7,7 @@ import oshi.util.tuples.Pair;
 /**
  * Абстрактный класс спецификации отбора сущностей.
  */
-public class BaseSpecification<T> {
+public class BaseSpecification<T, TDto> {
 
     protected Specification<T> specification;
     protected Sort sort;
@@ -17,12 +17,12 @@ public class BaseSpecification<T> {
         sort = Sort.unsorted();
     }
 
-    public <T2 extends BaseSpecification<T>> T2 withSort(Sort sort) {
+    public <T2 extends BaseSpecification<T, TDto>> T2 withSort(Sort sort) {
         this.sort = sort;
         return (T2) this;
     }
 
-    public BaseSpecification<T> add(BaseSpecification<T> spec) {
+    public BaseSpecification<T, TDto> add(BaseSpecification<T, TDto> spec) {
         specification = specification.and(spec.specification);
         sort = sort.and(spec.sort);
         return this;
@@ -34,17 +34,17 @@ public class BaseSpecification<T> {
 
     public Pair<Specification<T>, Sort> build() { return new Pair<>(specification, sort); }
 
-    public <T2 extends BaseSpecification<T>> T2 orderBy(String parameterName) {
+    public <T2 extends BaseSpecification<T, TDto>> T2 orderBy(String parameterName) {
         sort = sort.and(Sort.by(Sort.Direction.ASC, parameterName));
         return (T2) this;
     }
 
-    public <T2 extends BaseSpecification<T>> T2 orderDescendingBy(String parameterName) {
+    public <T2 extends BaseSpecification<T, TDto>> T2 orderDescendingBy(String parameterName) {
         sort = sort.and(Sort.by(Sort.Direction.DESC, parameterName));
         return (T2) this;
     }
 
-    protected <T2 extends BaseSpecification<T>> T2 addSpecificationWrapper(Specification<T> spec) {
+    protected <T2 extends BaseSpecification<T, TDto>> T2 addSpecificationWrapper(Specification<T> spec) {
         specification = specification.and(spec);
         return (T2) this;
     }

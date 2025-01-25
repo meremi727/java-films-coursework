@@ -1,35 +1,32 @@
 package ru.tde.films.Views.Modals;
 
 import com.vaadin.flow.component.AbstractField;
-import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.combobox.*;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.textfield.IntegerField;
-import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.textfield.*;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.validator.DateRangeValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import ru.tde.films.Domain.Director;
-import ru.tde.films.Domain.Film;
-import ru.tde.films.Domain.Gender;
-import ru.tde.films.Services.FilmService;
+import ru.tde.films.Domain.*;
+import ru.tde.films.Repositories.Dto.*;
 import ru.tde.films.Views.Util.Annotation.AnnotationProcessor;
 import ru.tde.films.Views.Util.ModalView;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.Date;
+import java.util.function.Function;
 
 @Scope("prototype")
 @Component
-public class DirectorModal extends ModalView<Director> {
+public class DirectorModal extends ModalView<DirectorDto> {
     @Autowired
-    public DirectorModal(FilmService filmService) {
+    public DirectorModal(Function<Date, LocalDate> f1, Function<LocalDate, Date> f2) {
         super("Режиссер");
-        this.filmService = filmService;
+        this.toDate = f1;
+        this.toReverseDate = f2;
         init();
     }
 
@@ -43,22 +40,18 @@ public class DirectorModal extends ModalView<Director> {
         gender.setItems(Gender.values());
         gender.setItemLabelGenerator(Gender::toString);
 
-        films.setItems(filmService.getAll());
-        films.setItemLabelGenerator(Film::getTitle);
-
-        binder.forField(id).bind(Director::getId, Director::setId);
-        binder.forField(gender).asRequired("Обязательное поле").bind(Director::getGender, Director::setGender);
-        binder.forField(country).asRequired("Обязательное поле").bind(Director::getCountry, Director::setCountry);
-        binder.forField(surname).asRequired("Обязательное поле").bind(Director::getSurname, Director::setSurname);
-        binder.forField(name).asRequired("Обязательное поле").bind(Director::getName, Director::setName);
-        binder.forField(patronymic).asRequired("Обязательное поле").bind(Director::getPatronymic, Director::setPatronymic);
+        binder.forField(id).bind(DirectorDto::getId, DirectorDto::setId);
+        binder.forField(gender).asRequired("Обязательное поле").bind(DirectorDto::getGender, DirectorDto::setGender);
+        binder.forField(country).asRequired("Обязательное поле").bind(DirectorDto::getCountry, DirectorDto::setCountry);
+        binder.forField(surname).asRequired("Обязательное поле").bind(DirectorDto::getSurname, DirectorDto::setSurname);
+        binder.forField(name).asRequired("Обязательное поле").bind(DirectorDto::getName, DirectorDto::setName);
+        binder.forField(patronymic).asRequired("Обязательное поле").bind(DirectorDto::getPatronymic, DirectorDto::setPatronymic);
         binder.forField(dateOfBirth)
                 .asRequired("Обязательное поле")
                 .withValidator(new DateRangeValidator("Неверная дата", LocalDate.MIN, LocalDate.now()))
-                .withConverter(DirectorModal::fromLocalDate, DirectorModal::fromDate, "Ошибка преобразования даты")
-                .bind(Director::getDateOfBirth, Director::setDateOfBirth);
-        binder.forField(dignity).asRequired("Обязательное поле").bind(Director::getDignity, Director::setDignity);
-        binder.forField(films).bind(Director::getFilms, Director::setFilms);
+                .withConverter(toReverseDate::apply, toDate::apply, "Ошибка преобразования даты")
+                .bind(DirectorDto::getDateOfBirth, DirectorDto::setDateOfBirth);
+        binder.forField(dignity).asRequired("Обязательное поле").bind(DirectorDto::getDignity, DirectorDto::setDignity);
 
         addToBinder(gender);
         addToBinder(country);
@@ -67,15 +60,13 @@ public class DirectorModal extends ModalView<Director> {
         addToBinder(patronymic);
         addToBinder(dateOfBirth);
         addToBinder(dignity);
-        addToBinder(films);
 
-        form.add(gender, country, surname, name, patronymic, dateOfBirth, dignity, films);
+        form.add(gender, country, surname, name, patronymic, dateOfBirth, dignity);
         super.init(form);
-
     }
 
     @Override
-    protected void prepareForEditing(Director entity) {
+    protected void prepareForEditing(DirectorDto entity) {
         tmpEntity = entity;
         binder.readBean(entity);
     }
@@ -89,23 +80,21 @@ public class DirectorModal extends ModalView<Director> {
     @Override
     protected void applyButtonClick() {
         if (binder.isValid()) {
-            var director = new Director();
+            var director = DirectorDto.builder().build();
             binder.writeBeanIfValid(director);
             raiseApplyEvent(director);
         }
     }
 
-    private static String getLabel(String fieldName) { return AnnotationProcessor.getTranslation(Director.class, fieldName);}
+    private static String getLabel(String fieldName) { return AnnotationProcessor.getTranslation(DirectorDto.class, fieldName);}
 
-    private static Date fromLocalDate(LocalDate date) { return Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant()); }
-
-    private static LocalDate fromDate(Date date) { return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate(); }
 
     private void addToBinder(AbstractField<?, ?> field) { field.addValueChangeListener(e -> binder.validate()); }
 
-    private Director tmpEntity;
-    private final FilmService filmService;
-    private final Binder<Director> binder = new Binder<>();
+    private DirectorDto tmpEntity;
+    private final Function<Date, LocalDate> toDate;
+    private final Function<LocalDate, Date> toReverseDate;
+    private final Binder<DirectorDto> binder = new Binder<>();
 
     private final IntegerField id = new IntegerField();
     private final ComboBox<Gender> gender = new ComboBox<>(getLabel("gender"));
@@ -115,6 +104,4 @@ public class DirectorModal extends ModalView<Director> {
     private final TextField patronymic = new TextField(getLabel("patronymic"));
     private final DatePicker dateOfBirth = new DatePicker(getLabel("dateOfBirth"));
     private final TextField dignity = new TextField(getLabel("dignity"));
-    private final MultiSelectComboBox<Film> films = new MultiSelectComboBox<>(getLabel("films"));
-
 }

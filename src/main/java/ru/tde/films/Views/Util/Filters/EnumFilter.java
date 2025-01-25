@@ -9,9 +9,9 @@ import ru.tde.films.Views.Util.Annotation.AnnotationProcessor;
 import java.util.Objects;
 import java.util.function.Function;
 
-public class EnumFilter<T, TEnum extends Enum<TEnum>> extends VerticalLayout implements Filter<T> {
-    public EnumFilter(Class<T> _class, String fieldName, Class<TEnum> _class2, Function<TEnum, BaseSpecification<T>> fabric) {
-        comboBox = new ComboBox<TEnum>(AnnotationProcessor.getTranslation(_class, fieldName));
+public class EnumFilter<T, TDto, TEnum extends Enum<TEnum>> extends VerticalLayout implements Filter<T, TDto> {
+    public EnumFilter(Class<TDto> _class, String fieldName, Class<TEnum> _class2, Function<TEnum, BaseSpecification<T, TDto>> fabric) {
+        comboBox = new ComboBox<>(AnnotationProcessor.getTranslation(_class, fieldName));
         comboBox.setItemLabelGenerator(Objects::toString);
         comboBox.setItems(_class2.getEnumConstants());
 
@@ -35,8 +35,8 @@ public class EnumFilter<T, TEnum extends Enum<TEnum>> extends VerticalLayout imp
     public boolean isFilled() { return comboBox.getEmptyValue() != comboBox.getValue(); }
 
     @Override
-    public BaseSpecification<T> getSpecificaion() { return this.fabric.apply(comboBox.getValue()); }
+    public BaseSpecification<T, TDto> getSpecificaion() { return this.fabric.apply(comboBox.getValue()); }
 
     private final ComboBox<TEnum> comboBox;
-    private final Function<TEnum, BaseSpecification<T>> fabric;
+    private final Function<TEnum, BaseSpecification<T, TDto>> fabric;
 }
